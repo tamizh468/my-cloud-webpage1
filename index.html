@@ -1,233 +1,172 @@
-<!--<!DOCTYPE html> 
-<html lang="en"> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quantum Portfolio</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Orbitron', sans-serif;
+    }
+    body {
+      background: #0d0d1a;
+      color: #fff;
+      overflow: hidden;
+      height: 100vh;
+      cursor: none; /* Hide default cursor */
+    }
+    #canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    .content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      text-align: center;
+    }
+    .content h1 {
+      font-size: 5rem;
+      text-transform: uppercase;
+      letter-spacing: 5px;
+      background: linear-gradient(45deg, #00ffcc, #ff00ff);
+      -webkit-background-clip: text;
+      color: transparent;
+      opacity: 0;
+    }
+    .content p {
+      font-size: 1.5rem;
+      margin: 20px 0;
+      color: #ccc;
+      opacity: 0;
+    }
+    .buttons {
+      margin-top: 30px;
+      opacity: 0;
+    }
+    .btn {
+      padding: 15px 30px;
+      margin: 0 10px;
+      background: none;
+      border: 2px solid #00ffcc;
+      color: #00ffcc;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      cursor: none;
+      transition: all 0.3s ease;
+    }
+    .btn:hover {
+      background: #00ffcc;
+      color: #0d0d1a;
+      transform: scale(1.1);
+    }
+    /* Custom Cursor */
+    .cursor {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #00ffcc;
+      border-radius: 50%;
+      position: absolute;
+      pointer-events: none;
+      z-index: 999;
+      transition: all 0.1s ease;
+    }
+    .cursor.grow {
+      width: 40px;
+      height: 40px;
+      border-color: #ff00ff;
+    }
+    @media (max-width: 768px) {
+      .content h1 { font-size: 3rem; }
+      .content p { font-size: 1rem; }
+      .btn { padding: 10px 20px; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div class="content">
+    <h1>Quantum Realm</h1>
+    <p>Explore the future of creativity</p>
+    <div class="buttons">
+      <button class="btn">Projects</button>
+      <button class="btn">Contact</button>
+    </div>
+  </div>
+  <div class="cursor"></div>
 
-<head> 
-	<meta charset="UTF-8"> 
-	<meta name="viewport" content= 
-		"width=device-width, initial-scale=1.0"> 
-	<style> 
-		.chat-container { 
-			max-width: 600px; 
-			margin: 50px auto; 
-			background-color: #fff; 
-			border-radius: 8px; 
-			overflow: hidden; 
-			box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
-		} 
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+  <script>
+    // Three.js Scene Setup
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas'), alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.position.z = 5;
 
-		.message-container { 
-			display: flex; 
-			flex-direction: column; 
-		} 
+    // 3D Sphere
+    const geometry = new THREE.SphereGeometry(2, 32, 32);
+    const material = new THREE.MeshBasicMaterial({ color: 0x00ffcc, wireframe: true });
+    const sphere = new THREE.Mesh(geometry, material);
+    scene.add(sphere);
 
-		.message { 
-			padding: 10px; 
-			margin: 10px; 
-			border-radius: 5px; 
-			max-width: 70%; 
-			word-wrap: break-word; 
-			display: flex; 
-			align-items: center; 
-		} 
+    // Particle System
+    const particleCount = 500;
+    const particles = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    for (let i = 0; i < particleCount * 3; i++) {
+      positions[i] = (Math.random() - 0.5) * 20;
+    }
+    particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const particleMaterial = new THREE.PointsMaterial({ color: 0xff00ff, size: 0.05 });
+    const particleSystem = new THREE.Points(particles, particleMaterial);
+    scene.add(particleSystem);
 
-		.sender-message { 
-			background-color: #e0e0e0; 
-			color: #000; 
-			align-self: flex-start; 
-		} 
+    // Animation Loop
+    function animate() {
+      requestAnimationFrame(animate);
+      sphere.rotation.x += 0.01;
+      sphere.rotation.y += 0.01;
+      particleSystem.rotation.y += 0.005;
+      renderer.render(scene, camera);
+    }
+    animate();
 
-		.receiver-message { 
-			background-color: #4CAF50; 
-			color: #fff; 
-			align-self: flex-end; 
-		} 
+    // Resize Handler
+    window.addEventListener('resize', () => {
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+    });
 
-		.avatar { 
-			width: 30px; 
-			height: 30px; 
-			border-radius: 50%; 
-			margin-right: 10px; 
-		} 
+    // GSAP Animations
+    gsap.from(".content h1", { opacity: 0, y: 100, duration: 1.5, ease: "power3.out" });
+    gsap.from(".content p", { opacity: 0, y: 50, duration: 1.5, delay: 0.5, ease: "power3.out" });
+    gsap.from(".buttons", { opacity: 0, y: 30, duration: 1.5, delay: 1, ease: "power3.out" });
 
-		.message input { 
-			width: calc(100% - 20px); 
-			padding: 8px; 
-			margin: 10px; 
-			border: 1px solid #ddd; 
-			border-radius: 5px; 
-		} 
-
-		.message button { 
-			padding: 8px; 
-			margin: 10px; 
-			background-color: #4CAF50; 
-			color: #fff; 
-			border: none; 
-			border-radius: 5px; 
-			cursor: pointer; 
-		} 
-	</style> 
-	<title>Chat Template UI using HTML and CSS - By Nidhi Upman</title> 
-</head> 
-
-<body> 
-	<div class="chat-container"> 
-		<div class="message-container"> 
-			<div class="message sender-message"> 
-				
-				<div class="logo">
-					<img src="https://s3-cdn.cmlabs.co/page/2023/10/04/web-developer-definition-skills-and-responsibilities-908401.png" alt="Your Logo">
-				</div>
-				
-					alt="Sender Avatar"
-					class="avatar"> 
-				Hello Nidhi Upman!
-			</div> 
-			<div class="message receiver-message"> 
-				<img src= 
-"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzPMj0hi4VXS1m0WrYoVynDg7TPq85UrEE9w&s"
-					alt="Receiver Avatar"
-					class="avatar"> 
-				Hi! How can I help you today? 
-			</div> 
-			<div class="message sender-message"> 
-				<img src= 
-"https://s3-cdn.cmlabs.co/page/2023/10/04/web-developer-definition-skills-and-responsibilities-908401.png"
-					alt="Sender Avatar"
-					class="avatar"> 
-				I have a question about your products. 
-			</div> 
-			<div class="message receiver-message"> 
-				<img src= 
-"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzPMj0hi4VXS1m0WrYoVynDg7TPq85UrEE9w&s"
-					alt="Receiver Avatar"
-					class="avatar"> 
-				Sure, feel free to ask! 
-			</div> 
-		</div> 
-
-		<div class="message"> 
-			<input type="text"
-				placeholder="Type your message..."> 
-			<button>Send</button> 
-		</div> 
-	</div> 
-</body> 
-
-</html>
-
--->
-<!DOCTYPE html> 
-<html lang="en"> 
-
-<head> 
-	<meta charset="UTF-8"> 
-	<meta name="viewport" content= 
-		"width=device-width, initial-scale=1.0"> 
-	<style> 
-		.chat-container { 
-			max-width: 600px; 
-			margin: 50px auto; 
-			background-color: #fff; 
-			border-radius: 8px; 
-			overflow: hidden; 
-			box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
-		} 
-
-		.message-container { 
-			display: flex; 
-			flex-direction: column; 
-		} 
-
-		.message { 
-			padding: 10px; 
-			margin: 10px; 
-			border-radius: 5px; 
-			max-width: 70%; 
-			word-wrap: break-word; 
-			display: flex; 
-			align-items: center; 
-		} 
-
-		.sender-message { 
-			background-color: #e0e0e0; 
-			color: #000; 
-			align-self: flex-start; 
-		} 
-
-		.receiver-message { 
-			background-color: #4CAF50; 
-			color: #fff; 
-			align-self: flex-end; 
-		} 
-
-		.avatar { 
-			width: 30px; 
-			height: 30px; 
-			border-radius: 50%; 
-			margin-right: 10px; 
-		} 
-
-		.message input { 
-			width: calc(100% - 20px); 
-			padding: 8px; 
-			margin: 10px; 
-			border: 1px solid #ddd; 
-			border-radius: 5px; 
-		} 
-
-		.message button { 
-			padding: 8px; 
-			margin: 10px; 
-			background-color: #4CAF50; 
-			color: #fff; 
-			border: none; 
-			border-radius: 5px; 
-			cursor: pointer; 
-		} 
-	</style> 
-	<title>Chat Template UI using HTML and CSS - By Nidhi Upman</title> 
-</head> 
-<center><h3>Chat Template UI using HTML and CSS - By Nidhi Upman</h3></center>
-<body> 
-	<div class="chat-container"> 
-		<div class="message-container"> 
-			<div class="message sender-message"> 
-				<img src= 
-"https://s3-cdn.cmlabs.co/page/2023/10/04/web-developer-definition-skills-and-responsibilities-908401.png" alt="Your Logo"
-					alt="Sender Avatar"
-					class="avatar"> 
-					Hello Nidhi Upman! 
-			</div> 
-			<div class="message receiver-message"> 
-				<img src= 
-"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzPMj0hi4VXS1m0WrYoVynDg7TPq85UrEE9w&s"
-					alt="Receiver Avatar"
-					class="avatar"> 
-					Hi! How are you doing these days?
-			</div> 
-			<div class="message sender-message"> 
-				<img src= 
-				"https://s3-cdn.cmlabs.co/page/2023/10/04/web-developer-definition-skills-and-responsibilities-908401.png" alt="Your Logo"
-					alt="Sender Avatar"
-					class="avatar"> 
-					I'm good, thanks! What are you up to these days? 
-			</div> 
-			<div class="message receiver-message"> 
-				<img src= 
-"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzPMj0hi4VXS1m0WrYoVynDg7TPq85UrEE9w&s"
-					alt="Receiver Avatar"
-					class="avatar"> 
-					These days, I'm learning web development and data structures & algorithms (DSA).
-			</div> 
-		</div> 
-
-		<div class="message"> 
-			<input type="text"
-				placeholder="Type your message..."> 
-			<button>Send</button> 
-		</div> 
-	</div> 
-</body> 
-
+    // Custom Cursor
+    const cursor = document.querySelector('.cursor');
+    document.addEventListener('mousemove', (e) => {
+      cursor.style.left = `${e.clientX}px`;
+      cursor.style.top = `${e.clientY}px`;
+    });
+    document.querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('mouseenter', () => cursor.classList.add('grow'));
+      btn.addEventListener('mouseleave', () => cursor.classList.remove('grow'));
+    });
+  </script>
+</body>
 </html>
